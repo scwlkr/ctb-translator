@@ -121,7 +121,9 @@ def parse_ctb(filepath):
                 if idx_str.isdigit():
                     current_color_index = int(idx_str)
                     in_definition = True
+                    # Initialize default values
                     current_color_data = {
+                        "Color Index": current_color_index + 1,
                         "Color": f"Color {current_color_index + 1}",
                         "Description": "",
                         "Dither": "On",
@@ -135,7 +137,8 @@ def parse_ctb(filepath):
                         "Line End Style": "Use object end style",
                         "Line Join Style": "Use object join style",
                         "Fill Style": "Use object fill style",
-                        "Hex": "#000000"
+                        "Hex": "#000000",
+                        "Raw Color Value": None # Capture internal value for Logic
                     }
                     
                     target_aci_index = current_color_index + 1
@@ -161,6 +164,7 @@ def parse_ctb(filepath):
                 val = val.strip().replace('"', '')
 
                 if key == 'description': current_color_data['Description'] = val
+                elif key == 'color': current_color_data['Raw Color Value'] = val # Capture Raw Color
                 elif key == 'color_policy':
                     try:
                         policy = int(val)
@@ -169,7 +173,11 @@ def parse_ctb(filepath):
                     except: pass
                 elif key == 'physical_pen_number': current_color_data['Pen No'] = val if val != '0' else "Automatic"
                 elif key == 'virtual_pen_number': current_color_data['Virtual Pen'] = val if val != '0' else "Automatic"
-                elif key == 'screen': current_color_data['Screen'] = val
+                elif key == 'screen': 
+                    try:
+                        current_color_data['Screen'] = int(val)
+                    except:
+                        current_color_data['Screen'] = val
                 elif key == 'linetype':
                     try: current_color_data['Linetype'] = LINETYPES.get(int(val), val)
                     except: current_color_data['Linetype'] = val
@@ -199,8 +207,85 @@ def parse_ctb(filepath):
                     try: current_color_data['Fill Style'] = FILL_STYLES.get(int(val), val)
                     except: current_color_data['Fill Style'] = val
 
-    rows.sort(key=lambda x: int(x['Color'].split(' ')[1]))
+    rows.sort(key=lambda x: x['Color Index'])
     return rows
+
+def process_data_for_output(rows):
+    # 1. Enhance Data
+    for row in rows:
+        # Screen Color is just the Hex
+        row["Screen Color"] = row["Hex"]
+        
+        # Plot Color Logic
+        # -1023410176 appears to be "Black" (Color 7 usually, or explicitly set to Black)
+        # -1006632961 appears to be "Use Object Color"
+        raw_color = row.get("Raw Color Value")
+        if raw_color == "-1023410176":
+            row["Plot Color"] = "Black"
+        elif raw_color == "-1006632961":
+            row["Plot Color"] = "Color" # As requested
+        else:
+            row["Plot Color"] = "Color" # Default fallback
+            
+        # Plot Line (Just copy Line Weight for now as requested)
+        row["Plot Line"] = row["Line Weight"]
+        
+    # 2. Convert to DataFrame
+    df = pd.DataFrame(rows)
+    
+    # 3. Calculate "Plots Same As"
+    # Group by Plot Color, Screen, Line Weight
+    # We need to act on the dataframe to find these groups
+    
+    # Create a grouping key
+    df['group_key'] = list(zip(df['Plot Color'], df['Screen'], df['Line Weight']))
+    
+    # Map group_key to list of Colors
+    group_map = {}
+    for idx, row in df.iterrows():
+        key = row['group_key']
+        if key not in group_map:
+            group_map[key] = []
+        group_map[key].append(row['Color'])
+        
+    # Assign "Plots Same As"
+    plots_same_as_list = []
+    for idx, row in df.iterrows():
+        key = row['group_key']
+        all_in_group = group_map.get(key, [])
+        # Exclude self
+        others = [c for c in all_in_group if c != row['Color']]
+        if others:
+            # Check length. formatting "Color 1, 2, 3"
+            # The example showed "Color 60, 211, 174".
+            # If we just join them, we get "Color 60, Color 211, Color 174" which is verbose.
+            # Let's try to condense to "Color 60, 211, 174"
+            
+            # Extract numbers
+            nums = []
+            for c in others:
+                try:
+                    nums.append(str(c.split(' ')[1]))
+                except:
+                    nums.append(c)
+            
+            plots_same_as_list.append("Color " + ", ".join(nums))
+        else:
+            plots_same_as_list.append("")
+            
+    df["Plots Same As"] = plots_same_as_list
+    
+    # Select Final Columns
+    final_columns = [
+        "Color", "Screen Color", "Plot Line", "Plot Color", "Screen", "Line Weight", "Plots Same As"
+    ]
+    
+    # Ensure all exist
+    for col in final_columns:
+        if col not in df.columns:
+            df[col] = ""
+            
+    return df[final_columns]
 
 def main():
     print("="*40)
@@ -208,7 +293,11 @@ def main():
     print("="*40)
     print("")
     
-    input_path = input("Please enter the full path to your .ctb file: ").strip()
+    if len(sys.argv) > 1:
+        input_path = sys.argv[1]
+        print(f"Using file path from arguments: {input_path}")
+    else:
+        input_path = input("Please enter the full path to your .ctb file: ").strip()
     
     # Remove quotes if user pasted path with quotes
     if input_path.startswith('"') and input_path.endswith('"'):
@@ -216,7 +305,8 @@ def main():
     
     if not os.path.exists(input_path):
         print(f"\nERROR: File not found at:\n{input_path}")
-        input("\nPress Enter to exit...")
+        if len(sys.argv) == 1:
+            input("\nPress Enter to exit...")
         return
 
     if not input_path.lower().endswith('.ctb'):
@@ -226,23 +316,14 @@ def main():
     
     if not data:
         print("\nFailed to extract data.")
-        input("\nPress Enter to exit...")
+        if len(sys.argv) == 1:
+            input("\nPress Enter to exit...")
         return
 
     print(f"Successfully extracted {len(data)} styles.")
 
-    df = pd.DataFrame(data)
-    
-    columns = [
-        "Color", "Description", "Hex", "Dither", "Grayscale", "Pen No", "Virtual Pen", 
-        "Screen", "Linetype", "Adaptive", "Line Weight", "Line End Style", 
-        "Line Join Style", "Fill Style"
-    ]
-    
-    for col in columns:
-        if col not in df.columns:
-            df[col] = ""
-    df = df[columns]
+    # Process Data
+    df_final = process_data_for_output(data)
 
     # Output filename
     base, ext = os.path.splitext(input_path)
@@ -251,13 +332,57 @@ def main():
     print(f"\nSaving to:\n{output_path}")
     
     try:
-        df.to_excel(output_path, index=False)
+        # Use XlsxWriter engine for formatting
+        with pd.ExcelWriter(output_path, engine='xlsxwriter') as writer:
+            df_final.to_excel(writer, index=False, sheet_name='CTB Data')
+            workbook = writer.book
+            worksheet = writer.sheets['CTB Data']
+            
+            # Formats
+            header_format = workbook.add_format({
+                'bold': True,
+                'text_wrap': True,
+                'valign': 'vcenter',
+                'align': 'center',
+                'border': 1
+            })
+            
+            # Apply header format
+            for col_num, value in enumerate(df_final.columns.values):
+                worksheet.write(0, col_num, value, header_format)
+                
+            # Iterate over rows to apply conditional formatting (Screen Color)
+            # Row 0 is header, data starts at Row 1
+            for row_num, row_data in df_final.iterrows():
+                # Get the Hex Color
+                hex_color = row_data['Screen Color']
+                
+                # Create a format for this cell
+                cell_format = workbook.add_format({
+                    'bg_color': hex_color,
+                    'font_color': hex_color, # Make text invisible or same as bg?
+                    'border': 1
+                })
+                
+                # Write the Screen Color cell (Column 1)
+                worksheet.write(row_num + 1, 1, hex_color, cell_format)
+                
+            # Auto-adjust column widths (approximation)
+            worksheet.set_column(0, 0, 10) # Color
+            worksheet.set_column(1, 1, 15) # Screen Color
+            worksheet.set_column(2, 2, 15) # Plot Line
+            worksheet.set_column(3, 3, 10) # Plot Color
+            worksheet.set_column(4, 4, 8)  # Screen
+            worksheet.set_column(5, 5, 12) # Line Weight
+            worksheet.set_column(6, 6, 50) # Plots Same As
+            
         print("\nSUCCESS! Excel file created.")
     except Exception as e:
         print(f"\nERROR saving Excel file: {e}")
         print("Check if the Excel file is currently open and close it.")
     
-    input("\nPress Enter to exit...")
+    if len(sys.argv) == 1:
+        input("\nPress Enter to exit...")
 
 if __name__ == "__main__":
     main()
