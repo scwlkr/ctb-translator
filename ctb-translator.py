@@ -251,9 +251,17 @@ def process_data_for_output(rows):
     # Assign "Plots Same As"
     plots_same_as_list = []
     for idx, row in df.iterrows():
+        # User Correction: Ignore "Specify" line weights for grouping
+        if row['Line Weight'] == "Specify":
+            plots_same_as_list.append("")
+            continue
+
         key = row['group_key']
         all_in_group = group_map.get(key, [])
-        # Exclude self
+        # Exclude self and others that are "Specify" (though key includes Line Weight so they should match)
+        # But wait, if key includes Line Weight, then all in this group HAVE "Specify" as line weight.
+        # So we just need to skip processing for this row if IT is "Specify".
+        
         others = [c for c in all_in_group if c != row['Color']]
         if others:
             # Check length. formatting "Color 1, 2, 3"
