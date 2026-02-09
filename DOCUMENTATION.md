@@ -33,25 +33,34 @@ The script iterates through every color definition (indices 0-254 for Colors 1-2
 - `screen`: The ink density (0-100).
 - `linetype`, `end_style`, etc.
 
-**Mapping Logic (Crucial):**
-The internal raw lineweight index in the Color Definition is **1-based** relative to the **0-based** Custom Table.
-- **Formula**: `Actual Lineweight = Table[Raw_Index - 1]`
-- **Exceptions**:
-  - `0`: Mapped to "Specify" (or "Use Object").
-  - `-1`: "Use object lineweight".
-  - `-2`: "ByBlock".
-  - `-3`: "Default".
+**New Logic Features:**
+- **Plot Color Determination**:
+  - Checks the internal `color` value.
+  - `-1023410176`: Mapped to "Black".
+  - `-1006632961` (and others): Mapped to "Color" (Use Object Color).
+- **Smart Grouping ("Plots Same As")**:
+  - Groups colors that have identical `Plot Color`, `Screen`, and `Line Weight` settings.
+  - **Exclusion**: Colors with `Line Weight` set to "Specify" are excluded from these groups to prevent clutter.
 
 ### 4. Hex Color Generation
-The script adds a `Hex` column corresponding to the AutoCAD Color Index (ACI).
+The script adds a `Screen Color` column corresponding to the AutoCAD Color Index (ACI).
 - **Alignment**: Color 1 (Red) is correctly mapped to `#FF0000`.
 
 ## Output
 The script generates an Excel file in the same directory as the input file, replacing the `.ctb` extension with `.xlsx`.
-- **Columns**: Color, Description, Hex, Dither, Grayscale, Pen No, Virtual Pen, Screen, Linetype, Adaptive, Line Weight, Line End Style, Line Join Style, Fill Style.
+If the file already exists, it appends `-copy` or `-copy(n)` to avoid overwriting.
+
+**Columns:**
+1.  **Color**: The ACI Color Name (e.g., Color 1).
+2.  **Screen Color**: Hex code (Cell background filled with color).
+3.  **Plot Line**: Displays the Line Weight.
+4.  **Plot Color**: "Black" or "Color".
+5.  **Screen**: Screening percentage (0-100).
+6.  **Line Weight**: Lineweight in mm or special value (e.g., Specify).
+7.  **Plots Same As**: List of other colors sharing the same plot settings.
 
 ## Dependencies
 - `python` (3.6+)
 - `pandas`
-- `openpyxl` (for Excel export)
+- `xlsxwriter` (for Excel formatting)
 - `zlib` (Built-in)

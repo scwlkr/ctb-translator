@@ -1,29 +1,45 @@
 # CTB to Excel Converter
 
-A simple, robust tool to convert AutoCAD `.ctb` plot style files into Excel format.
+A robust tool to convert AutoCAD `.ctb` plot style files into a visually formatted Excel spreadsheet.
 
 ## Features
-- **100% Accurate**: Reads the internal lineweight tables directly from the file to ensure values match your specific configuration.
-- **Complete Data**: Extracts all 255 colors and their properties (Screen, Lineweight, Linetype, etc.).
-- **Hex Codes**: Includes a column for the standard Hex color code of each ACI color.
-- **Easy to Use**: Interactive script prompt.
+- **100% Accurate**: Reads internal lineweight tables directly from the file.
+- **Visual Formatting**:
+    - **Screen Color**: Cells are filled with the actual color hex code.
+    - **Formatting**: Headers and borders are applied for readability.
+- **Smart Logic**:
+    - **Plot Color**: Automatically detects if a color plots as "Black" or uses the object's color.
+    - **Plots Same As**: Groups colors that share identical plot settings, reducing redundancy. (Excludes "Specify" lineweights).
+- **Safe Execution**: Never overwrites existing files. Automatically creates copies (e.g., `filename-copy.xlsx`).
+- **CLI Support**: Supports dragging and dropping files or running via command line.
 
 ## Requirements
-- Python must be installed on your machine.
-- Required Python libraries: `pandas`, `openpyxl`.
+- Python 3.6+
+- Libraries: `pandas`, `xlsxwriter`
 
 To install dependencies:
 ```bash
-pip install pandas openpyxl
+pip install pandas xlsxwriter
 ```
 
 ## How to Use
-1.  Run the script `CTB_Converter.py`.
+### Method 1: Interactive
+1.  Run the script:
+    ```bash
+    python ctb-translator.py
+    ```
 2.  Paste the full path to your `.ctb` file when prompted.
-    - Example: `C:\Users\Name\Desktop\JVC1.ctb`
-3.  The script will generate an Excel file in the **same folder** as your input file.
-    - Output: `C:\Users\Name\Desktop\JVC1.xlsx`
+    - Example: `C:\Path\To\file.ctb`
+
+### Method 2: Command Line / Drag & Drop
+Pass the file path as an argument:
+```bash
+python ctb-translator.py "C:\Path\To\file.ctb"
+```
+
+## Output
+The script generates an Excel file in the **same folder** as the input file.
+- **Columns**: Color, Screen Color, Plot Line, Plot Color, Screen, Line Weight, Plots Same As.
 
 ## Troubleshooting
-- **Permission Denied**: If the script fails to save the Excel file, ensure you have the Excel file **CLOSED** before running the conversion.
-- **File Not Found**: Make sure you have the correct path to your `.ctb` file (remove quotes if you copied them).
+- **File Not Found**: Ensure the path is correct and surrounded by quotes if it contains spaces (the script handles quote removal automatically).
