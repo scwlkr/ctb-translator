@@ -1,45 +1,35 @@
-# CTB to Excel Converter
+# CTB Translator
 
-A robust tool to convert AutoCAD `.ctb` plot style files into a visually formatted Excel spreadsheet.
+A powerful tool to convert AutoCAD `.ctb` plot style files into human-readable reports.
 
-## Features
-- **100% Accurate**: Reads internal lineweight tables directly from the file.
-- **Visual Formatting**:
-    - **Screen Color**: Cells are filled with the actual color hex code.
-    - **Formatting**: Headers and borders are applied for readability.
-- **Smart Logic**:
-    - **Plot Color**: Automatically detects if a color plots as "Black" or uses the object's color.
-    - **Plots Same As**: Groups colors that share identical plot settings, reducing redundancy. (Excludes "Specify" lineweights).
-- **Safe Execution**: Never overwrites existing files. Automatically creates copies (e.g., `filename-copy.xlsx`).
-- **CLI Support**: Supports dragging and dropping files or running via command line.
+## Web Application (New!)
+This project now features a fully client-side **Web Application** that runs entirely in your browser using PyScript.
+
+👉 **[Launch Web App](index.html)** (Run locally)
+
+### Features
+- **Drag & Drop**: Simply drop your `.ctb` file to parse.
+- **Instant Preview**: See tables immediately without installing Python.
+- **Print Ready**: Generates professional, clean reports via the "Print" button.
+- **Privacy Focused**: Files are processed locally in your browser memory; nothing is uploaded to a server.
+
+### Technical Documentation
+For a deep dive into how the parsing works and how to build the project, see **[DOCUMENTATION.md](DOCUMENTATION.md)**.
+
+---
+
+## Legacy Python Script
+The original command-line script is still available for batch processing or terminal usage.
+
+### Features
+- **Excel Export**: Generates formatted `.xlsx` files.
+- **100% Accurate**: Reads internal lineweight tables.
+
+### Usage
+```bash
+python ctb-translator.py "path/to/file.ctb"
+```
 
 ## Requirements
-- Python 3.6+
-- Libraries: `pandas`, `xlsxwriter`
-
-To install dependencies:
-```bash
-pip install pandas xlsxwriter
-```
-
-## How to Use
-### Method 1: Interactive
-1.  Run the script:
-    ```bash
-    python ctb-translator.py
-    ```
-2.  Paste the full path to your `.ctb` file when prompted.
-    - Example: `C:\Path\To\file.ctb`
-
-### Method 2: Command Line / Drag & Drop
-Pass the file path as an argument:
-```bash
-python ctb-translator.py "C:\Path\To\file.ctb"
-```
-
-## Output
-The script generates an Excel file in the **same folder** as the input file.
-- **Columns**: Color, Screen Color, Plot Line, Plot Color, Screen, Line Weight, Plots Same As.
-
-## Troubleshooting
-- **File Not Found**: Ensure the path is correct and surrounded by quotes if it contains spaces (the script handles quote removal automatically).
+- **Web App**: A modern web browser (Chrome, Edge, Firefox).
+- **Legacy Script**: Python 3.6+ and `pandas`, `xlsxwriter`.

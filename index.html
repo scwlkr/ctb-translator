@@ -3,12 +3,123 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hello World Page</title>
+    <title>CTB Translator</title>
+    
+    <!-- Design -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+
+    <!-- PyScript -->
+    <link rel="stylesheet" href="https://pyscript.net/releases/2024.1.1/core.css" />
+    <script type="module" src="https://pyscript.net/releases/2024.1.1/core.js"></script>
 </head>
 <body>
 
-    <h1>Hello, World!</h1>
-    <p>This is my first website.</p>
+    <div class="container">
+        <header>
+            <h1>CTB Translator</h1>
+            <p class="subtitle">Convert AutoCAD Color Tables to Clean Reports</p>
+        </header>
 
+        <!-- Drop Zone -->
+        <div id="drop-zone" class="drop-zone">
+            <div class="drop-icon">📂</div>
+            <div class="drop-text">Drag & Drop .ctb file here</div>
+            <div class="drop-subtext">or click to browse</div>
+            <input type="file" id="file-input" accept=".ctb" style="display: none;">
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+            <button id="print-btn" class="btn hidden" onclick="window.print()">Print Report</button>
+        </div>
+
+        <!-- Results -->
+        <div id="results-area" class="table-container hidden">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Color</th>
+                        <th>Screen Color</th>
+                        <th>Plot Line</th>
+                        <th>Plot Color</th>
+                        <th>Screen</th>
+                        <th>Line Weight</th>
+                        <th>Plots Same As</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body">
+                    <!-- Python will populate this -->
+                </tbody>
+            </table>
+        </div>
+        
+        <footer class="text-center no-print" style="margin-top: 2rem; color: #94a3b8; font-size: 0.75rem;">
+            <p>CTB Translator Web &copy; 2026</p>
+        </footer>
+    </div>
+
+    <!-- Python Logic -->
+    <script type="py" src="./ctb-translator-web.py" config="./pyscript.json"></script>
+
+    <!-- JS Bridge -->
+    <script>
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+
+        // Click to browse
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        // Drag & Drop events
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('drag-over');
+        });
+
+        dropZone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+            if (e.dataTransfer.files.length > 0) {
+                handleFile(e.dataTransfer.files[0]);
+            }
+        });
+
+        function handleFile(file) {
+            if (!file.name.toLowerCase().endsWith('.ctb')) {
+                alert("Please upload a valid .ctb file.");
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const arrayBuffer = event.target.result;
+                const uint8Array = new Uint8Array(arrayBuffer);
+                
+                // Call Python function
+                // Note: PyScript 2024.1.1 mounts exported python functions to window if defined there
+                // We just need to wait for pyscript to be ready preferably, but usually direct call works if loaded.
+                if (window.process_file_content) {
+                    window.process_file_content(uint8Array);
+                } else {
+                    console.error("Python logic not yet loaded. Please wait...");
+                    alert("System initializing, please try again in a moment.");
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+    </script>
 </body>
 </html>
