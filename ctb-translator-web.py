@@ -4,41 +4,7 @@ from pyscript import document, window
 import js
 
 # --- Constants & Data ---
-ACI_HEX_LIST = [
-    "#000000", "#FF0000", "#FFFF00", "#00FF00", "#00FFFF", "#0000FF", "#FF00FF", "#FFFFFF", 
-    "#414141", "#808080", "#FF0000", "#FFAAAA", "#BD0000", "#BD7E7E", "#810000", "#815656", 
-    "#680000", "#684545", "#450000", "#452E2E", "#FF3F00", "#FFAF95", "#BD2E00", "#BD826F", 
-    "#811F00", "#81594B", "#681900", "#68483D", "#451100", "#453028", "#FF7F00", "#FFD495", 
-    "#BD5E00", "#BD9D6F", "#814000", "#816B4B", "#683300", "#68563D", "#452200", "#453928", 
-    "#FFBF00", "#FFFFA9", "#BD8D00", "#BDbd7d", "#816000", "#818155", "#684D00", "#686844", 
-    "#453300", "#45452d", "#FFFF00", "#FFFFAA", "#BDBD00", "#BDBD7E", "#818100", "#818156", 
-    "#686800", "#686845", "#454500", "#45452e", "#BFFF00", "#E4FFAA", "#8DBD00", "#A9BD7E", 
-    "#608100", "#738156", "#4D6800", "#5c6845", "#334500", "#3d452e", "#7FFF00", "#D4FFAA", 
-    "#5EBD00", "#9DBD7E", "#408100", "#6B8156", "#336800", "#566845", "#224500", "#39452e", 
-    "#3FFF00", "#BFFFaa", "#2EBD00", "#8DBD7e", "#1F8100", "#608156", "#196800", "#4d6845", 
-    "#114500", "#33452e", "#00FF00", "#AAFFAA", "#00BD00", "#7EBDBD", "#008100", "#568181", 
-    "#006800", "#456868", "#004500", "#2E4545", "#00FF3F", "#AAFFBF", "#00BD2E", "#7EBD8D", 
-    "#00811F", "#568160", "#006819", "#45684D", "#004511", "#2E4533", "#00FF7F", "#AAFFD4", 
-    "#00BD5E", "#7EBD9D", "#008140", "#56816B", "#006833", "#456856", "#004522", "#2E4539", 
-    "#00FFBF", "#AAFFFF", "#00BD8D", "#7EBDBD", "#008160", "#568181", "#00684D", "#456868", 
-    "#004533", "#2E4545", "#00FFFF", "#AAFFFF", "#00BDBD", "#7EBDBD", "#008181", "#568181", 
-    "#006868", "#456868", "#004545", "#2E4545", "#00BFFF", "#AAD4FF", "#008DBD", "#7EA9BD", 
-    "#006081", "#567381", "#004D68", "#455C68", "#003345", "#2E3D45", "#007FFF", "#AAD4FF", 
-    "#005EBD", "#7E9DBD", "#004081", "#566B81", "#003368", "#455668", "#002245", "#2E3945", 
-    "#003FFF", "#AABFFF", "#002EBD", "#7E8DBD", "#001F81", "#566081", "#001968", "#454D68", 
-    "#001145", "#2E3345", "#0000FF", "#AAAAFF", "#0000BD", "#7E7EBD", "#000081", "#565681", 
-    "#000068", "#454568", "#000045", "#2E2E45", "#3F00FF", "#BF00FF", "#2E00BD", "#8D00BD", 
-    "#1F0081", "#600081", "#190068", "#4D0068", "#110045", "#330045", "#7F00FF", "#D400FF", 
-    "#5E00BD", "#9D00BD", "#400081", "#6B0081", "#330068", "#560068", "#220045", "#390045", 
-    "#BF00FF", "#FF00FF", "#8D00BD", "#BD00BD", "#600081", "#810081", "#4D0068", "#680068", 
-    "#330045", "#450045", "#FF00FF", "#FF00FF", "#BD00BD", "#BD00BD", "#810081", "#810081", 
-    "#680068", "#680068", "#450045", "#450045", "#FF00BF", "#FF00D4", "#BD008D", "#BD009D", 
-    "#810060", "#81006B", "#68004D", "#680056", "#450033", "#450039", "#FF007F", "#FF00AA", 
-    "#BD005E", "#BD007E", "#810040", "#810056", "#680033", "#680045", "#450022", "#45002E", 
-    "#FF003F", "#FF007F", "#BD002E", "#BD005E", "#81001F", "#810040", "#680019", "#680033", 
-    "#450011", "#450022", "#333333", "#505050", "#545454", "#595959", "#5E5E5E", "#636363", 
-    "#686868", "#6D6D6D", "#727272", "#777777", "#7C7C7C", "#818181"
-]
+ACI_HEX_LIST = ['#000000', '#FF0000', '#FFFF00', '#00FF00', '#00FFFF', '#0000FF', '#FF00FF', '#FFFFFF', '#414141', '#808080', '#FF0000', '#FFAAAA', '#BD0000', '#BD7E7E', '#810000', '#815656', '#680000', '#684545', '#4F0000', '#4F3535', '#FF3F00', '#FFBFAA', '#BD2E00', '#BD8D7E', '#811F00', '#816056', '#681900', '#684E45', '#4F1300', '#4F3B35', '#FF7F00', '#FFD4AA', '#BD5E00', '#BD9D7E', '#814000', '#816B56', '#683400', '#685645', '#4F2700', '#4F4235', '#FFBF00', '#FFEAAA', '#BD8D00', '#BDAD7E', '#816000', '#817656', '#684E00', '#685F45', '#4F3B00', '#4F4935', '#FFFF00', '#FFFFAA', '#BDBD00', '#BDBD7E', '#818100', '#818156', '#686800', '#686845', '#4F4F00', '#4F4F35', '#BFFF00', '#EAFFAA', '#8DBD00', '#ADBD7E', '#608100', '#768156', '#4E6800', '#5F6845', '#3B4F00', '#494F35', '#7FFF00', '#D4FFAA', '#5EBD00', '#9DBD7E', '#408100', '#6B8156', '#346800', '#566845', '#274F00', '#424F35', '#3FFF00', '#BFFFAA', '#2EBD00', '#8DBD7E', '#1F8100', '#608156', '#196800', '#4E6845', '#134F00', '#3B4F35', '#00FF00', '#AAFFAA', '#00BD00', '#7EBD7E', '#008100', '#568156', '#006800', '#456845', '#004F00', '#354F35', '#00FF3F', '#AAFFBF', '#00BD2E', '#7EBD8D', '#00811F', '#568160', '#006819', '#45684E', '#004F13', '#354F3B', '#00FF7F', '#AAFFD4', '#00BD5E', '#7EBD9D', '#008140', '#56816B', '#006834', '#456856', '#004F27', '#354F42', '#00FFBF', '#AAFFEA', '#00BD8D', '#7EBDAD', '#008160', '#568176', '#00684E', '#45685F', '#004F3B', '#354F49', '#00FFFF', '#AAFFFF', '#00BDBD', '#7EBDBD', '#008181', '#568181', '#006868', '#456868', '#004F4F', '#354F4F', '#00BFFF', '#AAEAFF', '#008DBD', '#7EADBD', '#006081', '#567681', '#004E68', '#455F68', '#003B4F', '#35494F', '#007FFF', '#AAD4FF', '#005EBD', '#7E9DBD', '#004081', '#566B81', '#003468', '#455668', '#00274F', '#35424F', '#003FFF', '#AABFFF', '#002EBD', '#7E8DBD', '#001F81', '#566081', '#001968', '#454E68', '#00134F', '#353B4F', '#0000FF', '#AAAAFF', '#0000BD', '#7E7EBD', '#000081', '#565681', '#000068', '#454568', '#00004F', '#35354F', '#3F00FF', '#BFAAFF', '#2E00BD', '#8D7EBD', '#1F0081', '#605681', '#190068', '#4E4568', '#13004F', '#3B354F', '#7F00FF', '#D4AAFF', '#5E00BD', '#9D7EBD', '#400081', '#6B5681', '#340068', '#564568', '#27004F', '#42354F', '#BF00FF', '#EAAAFF', '#8D00BD', '#AD7EBD', '#600081', '#765681', '#4E0068', '#5F4568', '#3B004F', '#49354F', '#FF00FF', '#FFAAFF', '#BD00BD', '#BD7EBD', '#810081', '#815681', '#680068', '#684568', '#4F004F', '#4F354F', '#FF00BF', '#FFAAEA', '#BD008D', '#BD7EAD', '#810060', '#815676', '#68004E', '#68455F', '#4F003B', '#4F3549', '#FF007F', '#FFAAD4', '#BD005E', '#BD7E9D', '#810040', '#81566B', '#680034', '#684556', '#4F0027', '#4F3542', '#FF003F', '#FFAABF', '#BD002E', '#BD7E8D', '#81001F', '#815660', '#680019', '#68454E', '#4F0013', '#4F353B', '#333333', '#505050', '#696969', '#828282', '#BEBEBE', '#FFFFFF']
 
 LINETYPES = {
     0: "Solid", 1: "Dashed", 2: "Dotted", 3: "Dash Dot", 4: "Short Dash",
@@ -277,12 +243,8 @@ def render_table(data):
         td_screen_color = document.createElement("td")
         hex_val = row.get("Screen Color", "#000000")
         swatch = document.createElement("div")
+        swatch.className = "color-swatch"
         swatch.style.backgroundColor = hex_val
-        swatch.style.width = "100%"
-        swatch.style.height = "20px"
-        swatch.style.border = "1px solid #ccc"
-        swatch.style.borderRadius = "4px"
-        # Optional: Add text/tooltip?
         swatch.title = hex_val
         td_screen_color.appendChild(swatch)
         tr.appendChild(td_screen_color)
@@ -294,7 +256,24 @@ def render_table(data):
         
         # Plot Color
         td_plot_color = document.createElement("td")
-        td_plot_color.innerText = str(row.get("Plot Color", ""))
+        plot_color_val = str(row.get("Plot Color", ""))
+        
+        if plot_color_val == "Black":
+            box = document.createElement("div")
+            box.className = "color-swatch"
+            box.style.backgroundColor = "#000000"
+            box.title = "Black"
+            td_plot_color.appendChild(box)
+        elif plot_color_val == "Color":
+            # If value is "Color", display a square box filled with the object's specific ACI Screen Color
+            box = document.createElement("div")
+            box.className = "color-swatch"
+            box.style.backgroundColor = row.get("Screen Color", "#000000")
+            box.title = row.get("Screen Color", "")
+            td_plot_color.appendChild(box)
+        else:
+             td_plot_color.innerText = plot_color_val
+             
         tr.appendChild(td_plot_color)
         
         # Screen
