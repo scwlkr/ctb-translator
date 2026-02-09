@@ -333,9 +333,22 @@ def main():
     # Process Data
     df_final = process_data_for_output(data)
 
-    # Output filename
+    # Output filename logic
     base, ext = os.path.splitext(input_path)
-    output_path = base + ".xlsx"
+    base_output = base + ".xlsx"
+    
+    output_path = base_output
+    if os.path.exists(output_path):
+        # Try -copy
+        output_path = f"{base}-copy.xlsx"
+        if os.path.exists(output_path):
+            # Try -copy(n)
+            counter = 2
+            while True:
+                output_path = f"{base}-copy({counter}).xlsx"
+                if not os.path.exists(output_path):
+                    break
+                counter += 1
 
     print(f"\nSaving to:\n{output_path}")
     
