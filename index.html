@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CTB Translator</title>
-    
+
     <!-- Design -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,6 +16,7 @@
     <link rel="stylesheet" href="https://pyscript.net/releases/2024.1.1/core.css" />
     <script type="module" src="https://pyscript.net/releases/2024.1.1/core.js"></script>
 </head>
+
 <body>
 
     <div class="container">
@@ -33,29 +35,15 @@
 
         <!-- Controls -->
         <div class="controls">
+            <button id="copy-btn" class="btn hidden" onclick="copyReport()" style="margin-right: 0.5rem;">Copy</button>
             <button id="print-btn" class="btn hidden" onclick="window.print()">Print Report</button>
         </div>
 
         <!-- Results -->
-        <div id="results-area" class="table-container hidden">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Color</th>
-                        <th>Screen Color</th>
-                        <th>Plot Line</th>
-                        <th>Plot Color</th>
-                        <th>Screen</th>
-                        <th>Line Weight</th>
-                        <th>Plots Same As</th>
-                    </tr>
-                </thead>
-                <tbody id="table-body">
-                    <!-- Python will populate this -->
-                </tbody>
-            </table>
+        <div id="results-area" class="hidden">
+            <!-- Python will generate tables here -->
         </div>
-        
+
         <footer class="text-center no-print" style="margin-top: 2rem; color: #94a3b8; font-size: 0.75rem;">
             <p>CTB Translator Web &copy; 2026</p>
         </footer>
@@ -104,10 +92,10 @@
             }
 
             const reader = new FileReader();
-            reader.onload = function(event) {
+            reader.onload = function (event) {
                 const arrayBuffer = event.target.result;
                 const uint8Array = new Uint8Array(arrayBuffer);
-                
+
                 // Call Python function
                 // Note: PyScript 2024.1.1 mounts exported python functions to window if defined there
                 // We just need to wait for pyscript to be ready preferably, but usually direct call works if loaded.
@@ -120,6 +108,122 @@
             };
             reader.readAsArrayBuffer(file);
         }
+
+        async function copyReport() {
+            const resultsArea = document.getElementById('results-area');
+            if (!resultsArea || resultsArea.classList.contains('hidden')) {
+                alert("No report to copy!");
+                return;
+            }
+
+            const tables = resultsArea.querySelectorAll('table');
+            if (tables.length !== 2) {
+                copyElement(resultsArea);
+                return;
+            }
+
+            // Merge tables for clipboard
+            const leftTable = tables[0];
+            const rightTable = tables[1];
+
+            let html = '<table border="1" style="border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt;">';
+
+            // Header
+            const leftHead = leftTable.querySelector('thead tr');
+            const rightHead = rightTable.querySelector('thead tr');
+
+            html += '<thead><tr>';
+            if (leftHead) html += processHeaderRow(leftHead);
+            html += '<th style="width: 20px;"></th>'; // Spacer
+            if (rightHead) html += processHeaderRow(rightHead);
+            html += '</tr></thead>';
+
+            // Body
+            html += '<tbody>';
+            const leftRows = leftTable.querySelectorAll('tbody tr');
+            const rightRows = rightTable.querySelectorAll('tbody tr');
+            const maxRows = Math.max(leftRows.length, rightRows.length);
+
+            for (let i = 0; i < maxRows; i++) {
+                html += '<tr>';
+
+                // Left
+                if (i < leftRows.length) {
+                    html += processBodyRow(leftRows[i]);
+                } else {
+                    html += '<td colspan="8"></td>';
+                }
+
+                // Spacer
+                html += '<td style="width: 20px;"></td>';
+
+                // Right
+                if (i < rightRows.length) {
+                    html += processBodyRow(rightRows[i]);
+                } else {
+                    html += '<td colspan="8"></td>';
+                }
+
+                html += '</tr>';
+            }
+            html += '</tbody></table>';
+
+            try {
+                const type = "text/html";
+                const blob = new Blob([html], { type });
+                const data = [new ClipboardItem({ [type]: blob })];
+                await navigator.clipboard.write(data);
+
+                const btn = document.getElementById('copy-btn');
+                const originalText = btn.innerText;
+                btn.innerText = "Copied!";
+                setTimeout(() => btn.innerText = originalText, 2000);
+            } catch (err) {
+                console.error('Failed to copy: ', err);
+                alert("Failed to copy to clipboard.");
+            }
+        }
+
+        function processHeaderRow(tr) {
+            let html = '';
+            for (const cell of tr.children) {
+                html += `<th style="background-color: #f0f0f0; border: 1px solid #999; padding: 4px;">${cell.innerHTML}</th>`;
+            }
+            return html;
+        }
+
+        function processBodyRow(tr) {
+            let html = '';
+            for (const cell of tr.children) {
+                let style = 'border: 1px solid #ccc; padding: 4px; vertical-align: middle;';
+                let content = cell.innerHTML;
+
+                // Check if swatch cell (Screen Color or Plot Color [when showing box])
+                const swatch = cell.querySelector('.color-swatch');
+                if (swatch) {
+                    const bg = swatch.style.backgroundColor;
+                    if (bg) {
+                        style += `background-color: ${bg};`;
+                        content = '&nbsp;';
+                    }
+                }
+
+                html += `<td style="${style}">${content}</td>`;
+            }
+            return html;
+        }
+
+        async function copyElement(el) {
+            try {
+                const type = "text/html";
+                const blob = new Blob([el.outerHTML], { type });
+                const data = [new ClipboardItem({ [type]: blob })];
+                await navigator.clipboard.write(data);
+            } catch (err) {
+                alert("Failed to copy.");
+            }
+        }
     </script>
 </body>
+
 </html>

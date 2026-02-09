@@ -106,11 +106,43 @@ h1 {
 }
 
 /* Table */
+.dual-table-container {
+    display: flex;
+    gap: 2rem;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+@media (max-width: 900px) {
+    .dual-table-container {
+        flex-direction: column;
+    }
+}
+
 .table-container {
     background-color: var(--surface);
     border-radius: 0.5rem;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     overflow: hidden;
+    /* Remove overflow hidden on container if using flex inside it, 
+       but here the container IS the flex container's parent usually, 
+       but we replaced the table directly in Python. 
+       Let's adjust. */
+}
+
+/* If results-area is the container, we might need to reset its styles or apply them to children */
+#results-area {
+    background-color: transparent;
+    box-shadow: none;
+}
+
+#results-area table {
+    flex: 1;
+    background-color: var(--surface);
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    /* overflow: hidden; */
+    /* rounded corners on table */
 }
 
 table {
@@ -158,12 +190,11 @@ tr:hover td {
 }
 
 .color-swatch {
-    width: 20px;
-    height: 20px;
+    width: 100%;
+    height: 24px;
     border: 1px solid #ccc;
-    border-radius: 4px;
-    display: inline-block;
-    vertical-align: middle;
+    border-radius: 2px;
+    display: block;
 }
 
 /* Print Media */

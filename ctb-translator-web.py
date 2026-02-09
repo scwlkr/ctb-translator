@@ -228,75 +228,160 @@ def process_data(rows):
 
 def render_table(data):
     """Generates HTML table rows and inserts them into the DOM."""
-    table_body = document.getElementById("table-body")
-    table_body.innerHTML = "" # Clear previous
+    # Create dual-table container
+    container = document.createElement("div")
+    container.className = "dual-table-container"
     
-    for row in data:
-        tr = document.createElement("tr")
+    # Split data
+    mid_point = (len(data) + 1) // 2
+    left_data = data[:mid_point]
+    right_data = data[mid_point:]
+    
+    def create_table_element(table_data):
+        table = document.createElement("table")
+        thead = document.createElement("thead")
+        thead.innerHTML = """
+            <tr>
+                <th>Color</th>
+                <th>Screen Color</th>
+                <th style="width: 60px; text-align: center;">---</th>
+                <th>Plot Line</th>
+                <th>Plot Color</th>
+                <th>Screen</th>
+                <th>Line Weight</th>
+                <th>Plots Same As</th>
+            </tr>
+        """
+        table.appendChild(thead)
         
-        # Color
-        td_color = document.createElement("td")
-        td_color.innerText = row.get("Color", "")
-        tr.appendChild(td_color)
+        tbody = document.createElement("tbody")
         
-        # Screen Color (Visual swatch)
-        td_screen_color = document.createElement("td")
-        hex_val = row.get("Screen Color", "#000000")
-        swatch = document.createElement("div")
-        swatch.className = "color-swatch"
-        swatch.style.backgroundColor = hex_val
-        swatch.title = hex_val
-        td_screen_color.appendChild(swatch)
-        tr.appendChild(td_screen_color)
+        for row in table_data:
+            tr = document.createElement("tr")
+            
+            # Color
+            td_color = document.createElement("td")
+            td_color.innerText = row.get("Color", "")
+            tr.appendChild(td_color)
+            
+            # Screen Color (Visual swatch)
+            td_screen_color = document.createElement("td")
+            hex_val = row.get("Screen Color", "#000000")
+            swatch = document.createElement("div")
+            swatch.className = "color-swatch"
+            swatch.style.backgroundColor = hex_val
+            swatch.title = hex_val
+            td_screen_color.appendChild(swatch)
+            tr.appendChild(td_screen_color)
+            
+            # Visual Line Weight (---)
+            td_visual_lw = document.createElement("td")
+            td_visual_lw.style.textAlign = "center"
+            td_visual_lw.style.verticalAlign = "middle"
+            
+            lw_text = str(row.get("Line Weight", ""))
+            if "mm" in lw_text:
+                try:
+                    # Extract float value
+                    mm_val = float(lw_text.replace(" mm", "").strip())
+                    
+                    # Scale: 1mm = 10px height. 
+                    px_height = max(1, int(mm_val * 10))
+                    
+                    lw_line = document.createElement("div")
+                    lw_line.style.backgroundColor = "#000000"
+                    lw_line.style.width = "100%"
+                    lw_line.style.height = f"{px_height}px"
+                    lw_line.style.minHeight = "1px"
+                    lw_line.style.display = "block"
+                    lw_line.style.margin = "0 auto"
+                    lw_line.title = lw_text
+                    
+                    td_visual_lw.appendChild(lw_line)
+                except:
+                    pass 
+            elif lw_text == "Specify":
+                 # Default to 0.25mm visual representation
+                 mm_val = 0.25
+                 px_height = max(1, int(mm_val * 10))
+                 
+                 lw_line = document.createElement("div")
+                 lw_line.style.backgroundColor = "#000000"
+                 lw_line.style.width = "100%"
+                 lw_line.style.height = f"{px_height}px"
+                 lw_line.style.minHeight = "1px"
+                 lw_line.style.display = "block"
+                 lw_line.style.margin = "0 auto"
+                 lw_line.title = "Specify (0.25mm visual)"
+                 
+                 td_visual_lw.appendChild(lw_line)
+            
+            tr.appendChild(td_visual_lw)
+
+            # Plot Line
+            td_plot_line = document.createElement("td")
+            td_plot_line.innerText = str(row.get("Plot Line", ""))
+            tr.appendChild(td_plot_line)
+            
+            # Plot Color
+            td_plot_color = document.createElement("td")
+            plot_color_val = str(row.get("Plot Color", ""))
+            
+            if plot_color_val == "Black":
+                box = document.createElement("div")
+                box.className = "color-swatch"
+                box.style.backgroundColor = "#000000"
+                box.title = "Black"
+                td_plot_color.appendChild(box)
+            elif plot_color_val == "Color":
+                # If value is "Color", display a square box filled with the object's specific ACI Screen Color
+                box = document.createElement("div")
+                box.className = "color-swatch"
+                box.style.backgroundColor = row.get("Screen Color", "#000000")
+                box.title = row.get("Screen Color", "")
+                td_plot_color.appendChild(box)
+            else:
+                 td_plot_color.innerText = plot_color_val
+                 
+            tr.appendChild(td_plot_color)
+            
+            # Screen
+            td_screen = document.createElement("td")
+            td_screen.innerText = str(row.get("Screen", ""))
+            tr.appendChild(td_screen)
+            
+            # Line Weight
+            td_lw = document.createElement("td")
+            td_lw.innerText = str(row.get("Line Weight", ""))
+            tr.appendChild(td_lw)
+            
+            # Plots Same As
+            td_same = document.createElement("td")
+            td_same.className = "plots-same-as" # for specific styling if needed
+            td_same.innerText = str(row.get("Plots Same As", ""))
+            tr.appendChild(td_same)
+            
+            tbody.appendChild(tr)
         
-        # Plot Line
-        td_plot_line = document.createElement("td")
-        td_plot_line.innerText = str(row.get("Plot Line", ""))
-        tr.appendChild(td_plot_line)
-        
-        # Plot Color
-        td_plot_color = document.createElement("td")
-        plot_color_val = str(row.get("Plot Color", ""))
-        
-        if plot_color_val == "Black":
-            box = document.createElement("div")
-            box.className = "color-swatch"
-            box.style.backgroundColor = "#000000"
-            box.title = "Black"
-            td_plot_color.appendChild(box)
-        elif plot_color_val == "Color":
-            # If value is "Color", display a square box filled with the object's specific ACI Screen Color
-            box = document.createElement("div")
-            box.className = "color-swatch"
-            box.style.backgroundColor = row.get("Screen Color", "#000000")
-            box.title = row.get("Screen Color", "")
-            td_plot_color.appendChild(box)
-        else:
-             td_plot_color.innerText = plot_color_val
-             
-        tr.appendChild(td_plot_color)
-        
-        # Screen
-        td_screen = document.createElement("td")
-        td_screen.innerText = str(row.get("Screen", ""))
-        tr.appendChild(td_screen)
-        
-        # Line Weight
-        td_lw = document.createElement("td")
-        td_lw.innerText = str(row.get("Line Weight", ""))
-        tr.appendChild(td_lw)
-        
-        # Plots Same As
-        td_same = document.createElement("td")
-        td_same.className = "plots-same-as" # for specific styling if needed
-        td_same.innerText = str(row.get("Plots Same As", ""))
-        tr.appendChild(td_same)
-        
-        table_body.appendChild(tr)
+        table.appendChild(tbody)
+        return table
+
+    # Create and append tables
+    table_left = create_table_element(left_data)
+    table_right = create_table_element(right_data)
+    
+    container.appendChild(table_left)
+    container.appendChild(table_right)
+    
+    # Append container to results area
+    results_area = document.getElementById("results-area")
+    results_area.innerHTML = "" # Clear
+    results_area.appendChild(container)
 
     # Show results, hide placeholder/error
     document.getElementById("results-area").classList.remove("hidden")
     document.getElementById("print-btn").classList.remove("hidden")
+    document.getElementById("copy-btn").classList.remove("hidden")
 
 def process_file_content(file_content_js):
     """Entry point called from JS. Recieves JS Uint8Array."""
